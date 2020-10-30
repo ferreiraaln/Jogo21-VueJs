@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <title>Jogo 21 Vue JS</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css">
+
+        <link rel="stylesheet" href="css/style.css">
+
+        <link rel="shortcut icon" href="assets/favicon.png" type="image/png">
+    </head>
+    <style>
+        .msgvencedor{
+            background: yellow;
+            border-radius: 10px;
+        }
+    </style>
+    <body>
+        <div class="container text-center" id="app">
+            <h1 class="title">Jogo do 21 com Vue JS</h1>
+            <div class="msgvencedor" v-if="championName != '' ">
+                <p >{{championName}}</p>
+            </div>
+
+            <div class="row">
+
+                <div  v-for="player in players" :class="['col-6',{active:player.playerActived}]">
+                    <img :src="player.picture" :alt="player.name">
+                    <p>{{player.name}}</p>
+                    <p><strong>Pontos: </strong>{{player.points}}</p>
+                </div>
+
+
+                <div class="controls col">
+                    <a href="#" class="btn btn-success" @click.prevent="changePlayer">Pular</a>
+                    <a href="" class="btn btn-primary" @click.prevent="finishGame">Finalizar Jogo</a>
+                    <a href="" class="btn btn-danger" @click.prevent="resetGame">Resetar</a>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <div class="col-4">
+                    <div v-show="cartPosition == 'left'" v-if="cartSelected != '' ">
+                        <img :src="'assets/carts/'+cartSelected+'.png'"  alt="Carta" class="cart">
+                    </div>
+                </div>
+
+                <div class="col-4">
+                    <a href="#" @click.prevent="selectCart" >
+                        <img src="assets/baralho-cartas.png" alt="Baralho" class="carts">
+                    </a>
+                </div>
+
+                <div class="col-4">
+                    <div v-show="cartPosition == 'right'" v-if="cartSelected != '' ">
+                        <img :src="'assets/carts/'+cartSelected+'.png'"  alt="Carta" class="cart">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="./vue.js"></script>
+
+        <script>
+            new Vue({
+                el:'#app',
+                data:{
+                    activate:false,
+                    cartSelected:'',
+                    cartPosition: '',
+                    championName:'',
+                    players:[
+                        {
+                            name: "Player 1",
+                            picture:'assets/player1.png',
+                            points:0,
+                            playerActived:this.activate,
+                            position: 'left',
+                        },
+                        {
+                            name: "Player 2",
+                            picture:'assets/player2.png',
+                            points:0,
+                            playerActived:!this.activate,
+                            position: 'right',
+                        }
+                    ],
+                },
+                methods:{
+                    changePlayer(){
+                        this.players.map( val =>{
+                            val.playerActived = !val.playerActived;
+                        });
+                    },
+                    selectCart(){
+                        this.cartSelected = Math.floor((Math.random() * 13)+1);
+
+                        this.players.map( val =>{
+                            if(val.playerActived){
+                                val.points += this.cartSelected;
+                                this.cartPosition = val.position;
+
+                                if(val.points >= 21){
+                                    this.finishGame();
+                                }
+                            }
+                        });
+
+                        this.changePlayer();
+                    },
+                    finishGame(){
+                        let champion = this.players.filter( val => {
+                            return val.points <= 21;
+                        });
+
+                        if(champion.length > 1){
+                            champion = champion.reduce(function(a, b) {
+                                if(a.points > b.points){
+                                    return b
+                                }else if(b.points > a.points) {
+                                    return a
+                                }else{
+                                    return false;
+                                }
+                            });
+
+                            if(champion){
+                                this.setChampionName(champion.name);
+                            }
+                        }else{
+                            this.setChampionName(champion[0].name);
+                        }
+
+                        setTimeout( ()=>{ this.resetGame() }, 3000);
+                    },
+                    resetGame(){
+                        this.players.map( val =>{
+                            val.points = 0;
+                        });
+                        this.cartSelected = '';
+                        this.championName = '';
+                    },
+                    setChampionName(name){
+                        this.championName = "O vencedor é: "+name;
+                    }
+                }
+            })
+        </script>
+    </body>
+</html>
